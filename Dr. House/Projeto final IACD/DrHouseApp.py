@@ -9,6 +9,9 @@ from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QUrl
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
 
 class GradientWidget(QWidget):
     def __init__(self):
@@ -275,24 +278,39 @@ class DrHouseApp(QMainWindow):
 
     def load_or_train_model(self):
         # Load the dataset
-        patient_data = pd.read_csv(r"data\hcc_dataset.csv")
+        patient_data = pd.read_csv(r"data/hcc_dataset.csv")
 
         # Prepare the data
         data_for_test = patient_data.copy()
-        data_for_test.drop(columns='Class', inplace=True)
-
-        input_features = data_for_test.columns
+        input_features = data_for_test.columns[:-1]
         target_feature = 'Class'
 
-        x_bench = patient_data[input_features]
-        y_bench = patient_data[target_feature]
+        x_bench = data_for_test[input_features]
+        y_bench = data_for_test[target_feature]
 
         x_encoded = pd.get_dummies(x_bench)
+        y_encoded = pd.get_dummies(y_bench)
+
+        x_train, x_test, y_train, y_test = train_test_split(x_encoded, y_encoded, test_size=0.33, random_state=20)
+
+        if y_train.shape[1] == 1:
+            y_train_e = y_train.squeeze()
+        else:
+            y_train_e = y_train.idxmax(axis=1)
+        if y_test.shape[1] == 1:
+            y_test_e = y_test.squeeze()
+        else:
+            y_test_e = y_test.idxmax(axis=1)
+
+        self.model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+        self.model.fit(x_train, y_train_e)
         self.columns_encoded = x_encoded.columns
 
-        # Train the model
-        self.model = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
-        self.model.fit(x_encoded, y_bench)
+        # Optionally, evaluate the model
+        y_pred = self.model.predict(x_test)
+        print(classification_report(y_test_e, y_pred))
+
+
 
     def preprocess_input(self):
         res = ""
@@ -333,10 +351,37 @@ class DrHouseApp(QMainWindow):
             return "Patient Will NOT Survive"
 
     def show_selections(self):
-        input_data = self.preprocess_input()
-        if input_data is not None:
-            outcome = self.predict_outcome(input_data)
-            self.result_text.setText(outcome)
+        res = ""
+        count = 0
+        for key, widget in self.variables.items():
+            value = widget.currentText() if isinstance(widget, QComboBox) else widget.text()
+            
+            res += f"{value}, "
+            count += 1
+            if count % 6 == 0:
+                res += "\n"
+
+        new_data = res.split(', ')
+        if new_data[-1] == "":
+            new_data = new_data[:-1]  # Remove the trailing empty element
+        new_data_df = pd.DataFrame([new_data], columns=self.fields)  # Use the ordered fields list
+        df_encoded = pd.get_dummies(new_data_df)
+        
+        missing_cols = set(self.columns_encoded) - set(df_encoded.columns)
+        for col in missing_cols:
+            df_encoded[col] = 0
+
+        df_encoded = df_encoded[self.columns_encoded]
+
+        pred = self.model.predict(df_encoded)
+        
+        if pred[0] == "Lives":
+            self.happy_player.play()
+            self.result_text.setText("Patient Will Survive")
+        else:
+            self.womp_womp_player.play()
+            self.result_text.setText("Patient Will NOT Survive")
+
 
     def show_graphs(self):
         graph_window = QMainWindow(self)

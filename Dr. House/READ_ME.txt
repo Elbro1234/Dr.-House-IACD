@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Interface:
 
@@ -15,7 +15,7 @@ Interface:
 
             1st and 2nd graph - Histogram between not cleansed data and the cleansed data ("?" substitued by the mean)
 
-            3rd graph - Graphic comparison between the values with the outliars and another graph which the outliars have been removed (outliars were gaven the value of the
+            3rd graph - Graphic comparison between the values with the outliars and another graph which the outliars have been removed (outliers were gaven the value of the
                         higher acceptable value of that one variable)
 
 Jupiter file:
@@ -24,13 +24,14 @@ Jupiter file:
 
     Machine Learning Methods used: RandomForest, GradientBoosting, KNN, TreeDecision
 
+    GitHub: https://github.com/Elbro1234/Dr.-House-IACD
+
 PS: File paths may need to be adjusted after the compression and decompression of the file, we advise to have the folder "Projeto Final IACD directly on the desktop and only after 
     that open it with your text editor 
 
 Done by Elmano Vaz, Pedro Ferreira and Miguel Lopes
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
